@@ -40,9 +40,8 @@ def process_review(content):
             error = True
             break
         else:
-            # lines[i] = lines[i].replace("``", "<span class=\"ai-gen\">", 1).replace("``", "</span>", 1)
+            lines[i] = re.sub(r'!!!(.*?)!!!', r'<span class="aigen">\1</span>', lines[i])
             lines[i] = modify_text(lines[i])
-            # lines[i] = lines[i].replace("<>", "<sup>", 1).replace("<>", "</sup>", 1)
             lines[i] = f"<p>{lines[i]}</p>"
     if not error:
         content = ''.join(lines)

@@ -263,3 +263,4 @@ pyrightconfig.json
 
 # Local environment variables
 .env
+db.json
