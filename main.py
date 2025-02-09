@@ -1,13 +1,14 @@
-from flask import Flask, request
+from flask import Flask, request, render_template
 import requests
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 import os
 from llm_functions import *
 from tinydb import TinyDB, Query
+from flask_cors import CORS
 
 app = Flask(__name__)
-
+CORS(app)
 load_dotenv()
 
 # Example usage of an environment variable
@@ -73,6 +74,10 @@ def scrape_pmc_page(pmc_id, convert_sup=False):
     else:
         return None, response.status_code, response.text
 
+@app.route("/")
+def home():
+    return render_template("home.html")
+
 @app.route("/comprehension/<pmc_id>")
 def comprehension(pmc_id):
     # Check if the result is already cached
@@ -82,7 +87,7 @@ def comprehension(pmc_id):
         return cached_result[0]['result']
     section_tags, status_code, response_text = scrape_pmc_page(pmc_id)
     if section_tags:
-        result = str(comprehension_check(section_tags[0].get_text(), key))
+        result = comprehension_check(section_tags[0].get_text(), key)
         # Cache the result
         db.insert({'pmc_id': pmc_id, 'function': 'comprehension', 'result': result})
         return result
@@ -99,8 +104,9 @@ def rewrite(pmc_id):
     query = Query()
     cached_result = db.search((query.pmc_id == pmc_id) & (query.function == 'rewrite') & (query.level == comprehension_level))
     if cached_result:
-        return cached_result[0]['result']    
-
+        print('cached!')
+        return render_template("rewrite.html", content=cached_result[0]['text'])
+    print('nope!')
     section_tags, status_code, response_text = scrape_pmc_page(pmc_id, True)
 
     return_list = []
@@ -108,9 +114,9 @@ def rewrite(pmc_id):
     if section_tags:
         for tag in section_tags[:5]:
             return_list.append(rewrite_comprehension(tag.get_text(), comprehension_level, key))
-        result = '\n'.join(return_list)
-        db.insert({'pmc_id': pmc_id, 'level': comprehension_level, 'function': 'comprehension', 'rewrite': result})
-        return result
+        result = {'pmc_id': pmc_id, 'level': comprehension_level, 'function': 'rewrite', 'text': '\n'.join(return_list)}
+        db.insert(result)
+        return render_template("rewrite.html", content=result['text'])
     else:
         return f"Error {status_code}: Unable to retrieve page for PMC ID {pmc_id}. Response: {response_text}"
         

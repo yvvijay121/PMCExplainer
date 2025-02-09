@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Research Helper</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css">
+</head>
+<style>
+    .a {
+        text-align: center;
+    }
+    .b{
+        width:80%;
+    }
+</style>
+
+<body>
+    <section class="hero">
+        <div class="hero-body container">
+            <div class="card a content">
+                <h3>Modify Research Content</h3>
+                <p>Out of the given statements, up to what level do you understand the questions?</p>
+                <div class="b" style="display: flex; justify-content: center; flex-direction: column; align-items: center;"></div>
+                    <div class="c">
+                        <div class="notification has-text-centered">
+                            1. Lorem ipsum dolor sit amet consectetur adipisicing elit.
+                        </div>
+                        <div class="notification has-text-centered">
+                            2. Lorem ipsum dolor sit amet consectetur adipisicing elit.
+                        </div>
+                        <div class="notification has-text-centered">
+                            3. Lorem ipsum dolor sit amet consectetur adipisicing elit.
+                        </div>
+                        <div class="notification has-text-centered">
+                            4. Lorem ipsum dolor sit amet consectetur adipisicing elit.
+                        </div>
+                        <div class="notification has-text-centered">
+                            5. Lorem ipsum dolor sit amet consectetur adipisicing elit.
+                        </div>
+                        <div class="notification has-text-centered">
+                            6. Lorem ipsum dolor sit amet consectetur adipisicing elit.
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label">Select your understanding level:</label>
+                        <div class="control">
+                            <input class="slider is-fullwidth" type="range" id="slider" min="1" max="6" step="1" value="1">
+                        </div>
+                        <p class="help">Selected Option: <span id="sliderValue">3</span></p>
+                    </div>
+                    <div class="field">
+                        <label class="label">Enter PMC ID:</label>
+                        <div class="control">
+                            <input class="input" type="text" id="pmcId" placeholder="PMC1234567">
+                        </div>
+                    </div>
+                    <div class="field is-grouped is-grouped-centered">
+                        <div class="control">
+                            <button class="button is-link" id="updateBtn">Update Questions</button>
+                        </div>
+                        <div class="control">
+                            <button class="button is-primary" id="submitBtn">Submit</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <script>
+        const slider = document.getElementById('slider');
+        const sliderValue = document.getElementById('sliderValue');
+
+        slider.addEventListener('input', function() {
+            sliderValue.textContent = slider.value;
+        });
+
+        document.getElementById('updateBtn').addEventListener('click', function() {
+            const pmcId = document.getElementById('pmcId').value;
+            fetch(`http://localhost:5000/comprehension/${pmcId}`)
+                .then(response => response.json())
+                .then(data => {
+                    const comprehensionDiv = document.querySelector('.c');
+                    comprehensionDiv.innerHTML = '';
+
+                    data.statements.forEach((thing) => {
+                        const notification = document.createElement('div');
+                        notification.className = 'notification has-text-centered';
+                        notification.textContent = `${thing.comprehension_level}. ${thing.statement_text}`;
+                        comprehensionDiv.appendChild(notification);
+                    });
+                })
+                .catch(error => console.error('Error:', error));
+        });
+
+        document.getElementById('submitBtn').addEventListener('click', function() {
+            const pmcId = document.getElementById('pmcId').value;
+            const selectedLevel = slider.value;
+            window.open(`http://127.0.0.1:5000/rewrite/${pmcId}?level=${selectedLevel}`, '_blank');
+        });
+    </script>
+</body>
+</html>

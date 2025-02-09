@@ -11,7 +11,6 @@ def modify_text(text):
         modified_parts = []
         
         for part in parts:
-            print(part)
             if '–' in part:  # Handle ranges
                 start, end = map(int, part.split('–'))
                 modified_parts.extend([f'<a href="#R{num}" class="usa-link" aria-describedby="R{num}" aria-expanded="false">{num}</a>' for num in range(start, end + 1)])
@@ -130,7 +129,7 @@ def comprehension_check(text_content, key):
         max_tokens=16384,
     )
 
-    return completion.choices[0].message.parsed.statements
+    return completion.choices[0].message.parsed.model_dump_json()
 
 
 def rewrite_comprehension(text_content, comprehension_num, key):
